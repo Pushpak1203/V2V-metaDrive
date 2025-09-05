@@ -1,0 +1,7 @@
+# config/thresholds.yaml
+
+# Safety thresholds for decision-making
+brake_distance: 10.0     # meters
+slowdown_distance: 25.0  # meters
+reroute_distance: 40.0   # meters
+max_speed: 30.0          # m/s
