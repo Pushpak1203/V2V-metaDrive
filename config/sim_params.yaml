@@ -1,17 +1,36 @@
 # config/sim_params.yaml
 
-# MetaDrive simulation parameters
+# Simulation duration and timing
 simulation_time: 60        # Total simulation time in seconds
-tick_rate: 0.05            # Time step in seconds
+tick_rate: 0.05            # Time step in seconds (e.g., 0.05s for 20 FPS)
 
 # Vehicles
-vehicle_ids: ["ego_vehicle", "vehicle_1", "vehicle_2"]  # Default vehicle IDs
-vehicle_count: 3
-autopilot: true
+vehicle_count: 3           # Number of vehicles to spawn in MetaDrive
+vehicle_ids:               # Default vehicle IDs
+  - ego_vehicle
+  - vehicle_1
+  - vehicle_2
+autopilot: true            # Whether vehicles use autopilot by default
 
-# Ports
-broadcast_port: 5000
-receiver_base_port: 5001
+# Networking
+broadcast_port: 5000        # UDP port for broadcaster
+receiver_base_port: 5001    # Base port for receivers (increments per vehicle)
 
-# Environment
-map: "C"                   # MetaDrive map type
+# Map / Scenario
+default_map: "CloverLeaf"   # Default MetaDrive map
+default_scenario: "simple"  # Scenario name/type
+
+# Sensors (if you extend MetaDrive with sensors)
+camera:
+  width: 800
+  height: 600
+  fov: 90
+
+lidar:
+  range: 50
+  channels: 32
+  rotation_freq: 10
+  points_per_second: 100000
+
+# Weather (if supported later)
+weather: "ClearNoon"       # Placeholder, MetaDrive doesn’t use weather yet

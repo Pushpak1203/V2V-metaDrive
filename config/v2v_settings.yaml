@@ -1,14 +1,12 @@
 # config/v2v_settings.yaml
 
-# V2V Network Settings
-broadcast_ip: "<broadcast>"   # Broadcast to local network
-broadcast_port: 5000
-receiver_port: 5001
+# V2V Communication Settings
+latency_ms: 50         # Artificial latency in milliseconds
+packet_loss: 0.01      # Simulated packet loss probability (1%)
 
-latency_ms: 50                # Artificial latency (ms) before sending messages
-range_m: 200                  # Communication range in meters
-
-# Encryption
-encryption_enabled: true
-# 256-bit AES key in Base64 (generate with: python -c "import os,base64;print(base64.b64encode(os.urandom(32)).decode())")
-encryption_key_b64: "P9H0S0lO4dn9wGq7F2pP4dXK8yM6lN8jY1zK7tJ0eQ4="
+# Encryption settings
+encryption:
+  enabled: true
+  algorithm: AES
+  key: "bXlTdXBlclNlY3JldEtleTIwMjVfQmFzZTY0X0VuY29kZWQ="  # ✅ Valid base64 string (32-byte AES-256 key)
+  mode: CBC
