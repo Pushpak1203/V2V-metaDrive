@@ -8,5 +8,6 @@ packet_loss: 0.01      # Simulated packet loss probability (1%)
 encryption:
   enabled: true
   algorithm: AES
-  key: "bXlTdXBlclNlY3JldEtleTIwMjVfQmFzZTY0X0VuY29kZWQ="  # ✅ Valid base64 string (32-byte AES-256 key)
+  key: "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI="
+  # ✅ Valid base64 string (32-byte AES-256 key)
   mode: CBC
