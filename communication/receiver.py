@@ -4,7 +4,12 @@ import socket
 import argparse
 import yaml
 import os
+import sys
 import time
+
+# Add the parent directory to sys.path to resolve package imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from communication.encryption import EncryptionManager
 from communication.message_format import decode_message
 from decision_engine.response_planner import ResponsePlanner
