@@ -1,5 +1,3 @@
-# communication/receiver.py
-
 import socket
 import argparse
 import yaml
@@ -10,7 +8,8 @@ import time
 # Add the parent directory to sys.path to resolve package imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from communication.encryption import EncryptionManager
+# Correct import statement
+from encryption.encryption_utils import EncryptionManager
 from communication.message_format import decode_message
 from decision_engine.response_planner import ResponsePlanner
 
@@ -21,7 +20,7 @@ def main():
     parser.add_argument("--sim_type", required=True, help="Simulation backend type")
     parser.add_argument("--listen_port", type=int, required=True, help="UDP port to listen on")
     parser.add_argument("--v2v_config", required=True, help="Path to v2v_settings.yaml")
-    parser.add_argument("--thresholds", required=True, help="Path to thresholds.yaml")  # ✅ absolute path
+    parser.add_argument("--thresholds", required=True, help="Path to thresholds.yaml")
     args = parser.parse_args()
 
     print(f"[RECEIVER] Vehicle {args.vehicle_id} listening on port {args.listen_port}")
@@ -30,7 +29,7 @@ def main():
     with open(args.v2v_config, "r") as f:
         v2v_config = yaml.safe_load(f)
 
-    # Load thresholds configuration ✅ using absolute path
+    # Load thresholds configuration
     with open(args.thresholds, "r") as f:
         thresholds = yaml.safe_load(f)
 

@@ -58,36 +58,34 @@ def main():
     parser.add_argument("--receiver_base_port", type=int, help="Base UDP port for receivers")
     args = parser.parse_args()
 
-    # Load simulation parameters
     sim_params = load_config(SIM_PARAMS_FILE) or {}
-
-    # Resolve paths as absolute paths
-    v2v_config_path = os.path.abspath(V2V_CONFIG_FILE)
-    thresholds_path = os.path.abspath(THRESHOLDS_FILE)
 
     vehicle_ids = args.vehicle_ids or sim_params.get("vehicle_ids", ["ego_vehicle"])
     broadcast_port = args.broadcast_port or sim_params.get("broadcast_port", 5000)
     receiver_base_port = args.receiver_base_port or sim_params.get("receiver_base_port", 5001)
 
+    # ✅ Resolve paths absolutely
+    v2v_config_path = os.path.abspath(V2V_CONFIG_FILE)
+    thresholds_path = os.path.abspath(THRESHOLDS_FILE)
+
+    print(f"[MASTER] V2V config path: {v2v_config_path}")
+    print(f"[MASTER] Thresholds path: {thresholds_path}")
     print("[MASTER] MetaDrive environment will be started by env_manager.")
 
     processes = []
 
-    # Launch broadcasters
     for vid in vehicle_ids:
         p_broadcaster = Process(target=run_broadcaster, args=(vid, args.sim_type, broadcast_port, v2v_config_path))
         p_broadcaster.start()
         processes.append(p_broadcaster)
-        time.sleep(1)  # Stagger the start
+        time.sleep(1)
 
-    # Launch receivers
     for i, vid in enumerate(vehicle_ids):
         listen_port = receiver_base_port + i
         p_receiver = Process(target=run_receiver, args=(vid, args.sim_type, listen_port, v2v_config_path, thresholds_path))
         p_receiver.start()
         processes.append(p_receiver)
 
-    # Wait for processes to finish
     try:
         for p in processes:
             p.join()

@@ -1,13 +1,19 @@
 # config/v2v_settings.yaml
 
-# V2V Communication Settings
-latency_ms: 50         # Artificial latency in milliseconds
-packet_loss: 0.01      # Simulated packet loss probability (1%)
-
-# Encryption settings
 encryption:
   enabled: true
-  algorithm: AES
-  key: "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI="
-  # ✅ Valid base64 string (32-byte AES-256 key)
-  mode: CBC
+  method: "AES"
+  key_size: 256
+
+communication:
+  buffer_size: 4096
+  timeout: 1.0
+
+logging:
+  enabled: true
+  level: "INFO"
+
+vehicle_behavior:
+  max_speed: 30.0
+  acceleration: 3.0
+  deceleration: 5.0
