@@ -1,109 +1,100 @@
-# MetaDrive + V2V Communication System 🚗📡
+# MetaDrive + V2V Communication Project
 
-This project integrates **MetaDrive simulation** with a **Vehicle-to-Vehicle (V2V) communication system**.  
-It allows multiple simulated vehicles to exchange encrypted state information (position, speed, obstacles) over UDP sockets and make safe driving decisions using a **decision engine**.
+This project integrates the [MetaDrive Simulator](https://metadrive-simulator.readthedocs.io/) with a **Vehicle-to-Vehicle (V2V) communication system**.  
+It demonstrates **encrypted broadcasting and receiving of vehicle states** while simulating autonomous driving behaviors in a virtual world.
+
+---
+
+## 🚗 Features
+- **MetaDrive Simulation** – vehicles driving in a virtual environment.
+- **V2V Communication** – broadcaster and receiver modules exchange vehicle state.
+- **AES-256 Encryption** – secure communication using Base64 keys.
+- **Decision Engine** – simple planner that decides whether to `BRAKE`, `SLOW_DOWN`, or `KEEP_GOING`.
+- **Configurable Parameters** – simulation, V2V, and thresholds configurable via YAML.
+- **Modular Codebase** – separated into `communication/`, `decision_engine/`, and `metadrive_env/`.
 
 ---
 
 ## 📂 Project Structure
 
 ```
-metaDrive+V2V/
+META-DRIVE+V2V/
 │
-├── communication/              # Networking layer
-│   ├── broadcaster.py          # Sends vehicle state messages
-│   └── receiver.py             # Receives and processes messages
+├── communication/
+│   ├── broadcaster.py
+│   ├── receiver.py
+│   ├── encryption.py
+│   └── message_format.py
 │
-├── decision_engine/            # Decision-making logic
-│   ├── response_planner.py     # Chooses actions based on thresholds
-│   ├── hybrid_astar.py         # Path planning
-│   └── motion_primitives.py    # Maneuver library
+├── config/
+│   ├── sim_params.yaml
+│   ├── thresholds.yaml
+│   └── v2v_settings.yaml
 │
-├── config/                     # Configuration files
-│   ├── sim_params.yaml         # Simulation settings
-│   ├── thresholds.yaml         # Safety thresholds
-│   └── v2v_settings.yaml       # Communication & encryption configs
+├── decision_engine/
+│   ├── hybrid_astar.py
+│   ├── motion_primitives.py
+│   └── response_planner.py
 │
-├── metadrive_env/              # MetaDrive environment management
+├── encryption/
+│   ├── encryption_utils.py
+│   └── secret.key
+│
+├── metadrive_env/
 │   ├── env_manager.py
 │   └── vehicle_manager.py
 │
-├── encryption/                 # Security layer
-│   ├── encryption_utils.py     # AES encryption/decryption
-│   └── secret.key              # Auto-generated key (if missing)
-│
-├── run_all.py                  # Master script to launch sim + comms
-└── requirements.txt            # Python dependencies
+├── logs/                  # runtime logs
+├── requirements.txt
+├── run_all.py             # master launcher
+└── README.md
 ```
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Setup Instructions
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/Pushpak1203/V2V-metaDrive.git
-   cd V2V-metaDrive
-   ```
+### 1. Create Virtual Environment
+```bash
+python -m venv venv
+source venv/bin/activate   # Linux/Mac
+venv\Scripts\activate      # Windows
+```
 
-2. Create & activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # Mac/Linux
-   venv\Scriptsctivate      # Windows
-   ```
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 3. Configure Encryption Key
+The `v2v_settings.yaml` must contain a **Base64-encoded AES key**.
+
+Generate one:
+```bash
+python -c "import base64, os; print(base64.b64encode(os.urandom(32)).decode())"
+```
+
+Paste it into `config/v2v_settings.yaml`:
+```yaml
+encryption_key: "YOUR_BASE64_KEY_HERE"
+```
 
 ---
 
-## 🚀 Running the Simulation
+## ▶️ Running the Simulation
 
-Start the entire system (MetaDrive + broadcasters + receivers):
+Launch everything (MetaDrive + broadcasters + receivers):
 
 ```bash
 python run_all.py
 ```
 
-### Command-line options:
-- `--sim_type` : Choose simulation backend (default: `metadrive`)
-- `--vehicle_ids` : List of vehicle IDs to simulate (overrides `sim_params.yaml`)
-- `--broadcast_port` : UDP port for broadcasting messages
-- `--receiver_base_port` : Base UDP port for receivers
+---
 
-Example:
+## ✅ Expected Output
+
+When running, you should see:
 ```bash
-python run_all.py --vehicle_ids ego_vehicle vehicle_1 vehicle_2 --broadcast_port 5000 --receiver_base_port 5001
-```
-
----
-
-## 🔒 Security Layer
-
-- Messages between vehicles are **AES-256 encrypted**.
-- Encryption key is stored in `config/v2v_settings.yaml` (must be Base64 encoded).
-- If no key exists, `encryption_utils.py` can generate one automatically.
-
----
-
-## ⚡ Features
-
-- ✅ Multi-vehicle communication over UDP
-- ✅ Encrypted message exchange (AES-256)
-- ✅ Configurable safety thresholds
-- ✅ Decision-making engine (Hybrid A* + motion primitives)
-- ✅ Extensible simulation backend (MetaDrive)
-
----
-
-## 🧪 Example Output
-
-When running `run_all.py`, you should see:
-
-```
 [MASTER] MetaDrive environment will be started by env_manager.
 [MASTER] Starting broadcaster for ego_vehicle...
 [ENCRYPTION] AES key loaded successfully (256-bit).
@@ -112,13 +103,42 @@ When running `run_all.py`, you should see:
 [RECEIVER] Action for ego_vehicle: SLOW_DOWN
 ```
 
----
-
-## 👨‍💻 Author
-**Pushpak Chakraborty**  
-AI & Simulation Enthusiast 🚀
+And you will also get a **MetaDrive simulation window** showing the virtual driving environment.  
+Vehicles exchange their states via V2V while the decision engine reacts in real-time.
 
 ---
 
-## 📜 License
-MIT License. Free to use and modify.
+## 🛠️ Testing Step-by-Step
+
+1. Check configs:
+   ```bash
+   cat config/sim_params.yaml
+   cat config/v2v_settings.yaml
+   cat config/thresholds.yaml
+   ```
+
+2. Run only MetaDrive (no comms):
+   ```bash
+   python -m metadrive_env.env_manager
+   ```
+
+3. Run broadcaster or receiver individually:
+   ```bash
+   python communication/broadcaster.py --vehicle_id ego_vehicle --sim_type metadrive --broadcast_port 5000 --v2v_config config/v2v_settings.yaml
+   python communication/receiver.py --vehicle_id ego_vehicle --sim_type metadrive --listen_port 5001 --v2v_config config/v2v_settings.yaml --thresholds config/thresholds.yaml
+   ```
+
+---
+
+## 📌 Notes
+- Make sure **MetaDrive** is properly installed (see `requirements.txt`).
+- Run `run_all.py` only from the **project root**.
+- If encryption errors appear, regenerate a valid Base64 key.
+- Logs are stored under `logs/`.
+
+---
+
+## ✨ Future Improvements
+- Visualization of V2V messages.
+- More advanced decision-making (Reinforcement Learning).
+- Cloud-based simulation (Google Colab / GPU).
