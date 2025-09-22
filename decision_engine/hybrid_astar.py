@@ -4,20 +4,28 @@ import math
 import heapq
 
 
-class HybridAStarPlanner:
+class HybridAStar:
     def __init__(self, step_size=2.0, max_steer=0.5, wheelbase=2.5):
+        """
+        Simple Hybrid A* Planner for car-like vehicles.
+        :param step_size: forward step size (meters)
+        :param max_steer: maximum steering angle (radians)
+        :param wheelbase: vehicle wheelbase length (meters)
+        """
         self.step_size = step_size
         self.max_steer = max_steer
         self.wheelbase = wheelbase
 
-    def plan(self, start, goal, max_iter=200):
+    def plan(self, start, goal, obstacles=None, max_iter=200):
         """
-        Hybrid A* simplified planner.
-        - start: (x, y)
-        - goal:  {"x": gx, "y": gy}
-        Returns: list of (x, y) waypoints
+        Hybrid A* simplified path planner.
+        :param start: (x, y) or (x, y, heading)
+        :param goal: {"x": gx, "y": gy}
+        :param obstacles: list of (ox, oy) obstacle points
+        :param max_iter: maximum iterations
+        :return: list of (x, y) waypoints
         """
-        sx, sy = start
+        sx, sy = start[0], start[1]
         gx, gy = goal["x"], goal["y"]
 
         start_node = (0, sx, sy, 0.0, [])  # (cost, x, y, heading, path)
@@ -34,13 +42,18 @@ class HybridAStarPlanner:
 
             # Goal check
             if math.hypot(gx - x, gy - y) < 5.0:
-                return path + [(x, y)]
+                return path + [(x, y), (gx, gy)]
 
-            # Expand neighbors (steering angles)
+            # Expand neighbors
             for delta in [-self.max_steer, 0, self.max_steer]:
                 nx = x + self.step_size * math.cos(theta)
                 ny = y + self.step_size * math.sin(theta)
                 ntheta = theta + (self.step_size / self.wheelbase) * math.tan(delta)
+
+                # Obstacle check
+                if obstacles:
+                    if any(math.hypot(nx - ox, ny - oy) < 2.0 for ox, oy in obstacles):
+                        continue  # skip if too close to obstacle
 
                 g_cost = cost + self.step_size
                 h_cost = math.hypot(gx - nx, gy - ny)

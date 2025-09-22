@@ -1,81 +1,97 @@
+# metadrive_env/env_manager.py
+
 import os
-import time
+import yaml
 from metadrive import MetaDriveEnv
+from .vehicle_manager import VehicleManager
 
 
 class EnvManager:
-    """
-    Wrapper around MetaDriveEnv to manage environment setup,
-    vehicle registry, and stepping simulation.
-    """
-
-    def __init__(self, config_path=None, sim_config=None):
-        """
-        Args:
-            config_path: Path to YAML file with environment parameters
-            sim_config: Dict (optional) if configs are passed directly
-        """
-        self.config = sim_config or {}
+    def __init__(self, config_path="config/sim_params.yaml"):
+        self.config = self._load_config(config_path)
         self.env = None
-        self.vehicles = {}  # {vehicle_id: vehicle_obj}
+        self.vehicles = {}
+        self.vehicle_manager = VehicleManager()  # 🔑 Attach VehicleManager here
 
-    def setup_env(self):
-        """Initialize MetaDrive environment with configs."""
-        # Default environment settings
+    def _load_config(self, path):
+        """Load sim_params.yaml"""
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Config file not found: {path}")
+        with open(path, "r") as f:
+            return yaml.safe_load(f)
+
+    def start_env(self):
+        """Initialize MetaDrive environment with config."""
         env_config = {
-            "environment_num": self.config.get("environment_num", 1),
-            "traffic_density": self.config.get("traffic_density", 0.1),
-            "use_render": self.config.get("use_render", False),
-            "manual_control": self.config.get("manual_control", False),
-            "start_seed": self.config.get("start_seed", 0),
-            "map": self.config.get("default_map", "C"),
+            "use_render": True,
+            "manual_control": False,
+            "map": self.config.get("default_map", "CloverLeaf"),
+            "traffic_density": 0.1,
+            "start_seed": 0,
+            "horizon": int(self.config.get("simulation_time", 60) / self.config.get("tick_rate", 0.05)),
             "vehicle_config": {
-                "enable_reverse": True,
-                "show_navi_mark": True,
-            },
+                "lidar": self.config.get("lidar", {}),
+                "camera": self.config.get("camera", {})
+            }
         }
-
+        print(f"[ENV] Starting MetaDrive with map={env_config['map']} and horizon={env_config['horizon']}")
         self.env = MetaDriveEnv(env_config)
-        obs, _ = self.env.reset()
-        print("[ENV] MetaDrive environment initialized.")
-        return obs
+        self.env.reset()
 
-    def register_vehicle(self, vehicle_id, vehicle_obj):
-        """Register a vehicle for tracking in the env."""
-        self.vehicles[vehicle_id] = vehicle_obj
-        print(f"[ENV] Vehicle {vehicle_id} registered.")
+        # Spawn vehicles from config
+        self._spawn_vehicles()
+
+    def _spawn_vehicles(self):
+        """Spawn ego and other vehicles from config file."""
+        vehicle_ids = self.config.get("vehicle_ids", ["ego_vehicle"])
+        count = self.config.get("vehicle_count", len(vehicle_ids))
+
+        for i, vid in enumerate(vehicle_ids[:count]):
+            if i == 0:
+                # Ego vehicle is managed by env automatically
+                self.vehicles[vid] = self.env.vehicle
+                print(f"[ENV] Spawned ego vehicle: {vid}")
+            else:
+                # Add traffic vehicles
+                v = self.env.engine.spawn_object(self.env.vehicle_class, vehicle_config={}, random_seed=i)
+                self.env.engine.add_policy(v.id, None)  # autopilot-like
+                self.vehicles[vid] = v
+                print(f"[ENV] Spawned traffic vehicle: {vid} -> {v.id}")
 
     def get_vehicle(self, vehicle_id):
-        """Get vehicle object by ID."""
+        """Retrieve a vehicle by ID."""
         return self.vehicles.get(vehicle_id, None)
 
-    def step(self, actions=None):
-        """
-        Step simulation forward.
-        Args:
-            actions: Dict {vehicle_id: action} if multi-agent
-        """
-        if self.env is None:
-            raise RuntimeError("Environment not initialized. Call setup_env() first.")
+    # 🔑 Delegate control methods to VehicleManager
+    def apply_brake(self, vehicle_id):
+        v = self.get_vehicle(vehicle_id)
+        if v:
+            self.vehicle_manager.apply_brake(v)
 
-        if actions:
-            obs, reward, terminated, truncated, info = self.env.step(actions)
-        else:
-            obs, reward, terminated, truncated, info = self.env.step({})
+    def apply_slowdown(self, vehicle_id):
+        v = self.get_vehicle(vehicle_id)
+        if v:
+            self.vehicle_manager.apply_slowdown(v)
 
-        return obs, reward, terminated, truncated, info
+    def keep_speed(self, vehicle_id):
+        v = self.get_vehicle(vehicle_id)
+        if v:
+            self.vehicle_manager.keep_speed(v)
 
-    def run_loop(self, steps=1000, sleep_time=0.05):
-        """Simple loop for running the environment."""
-        for i in range(steps):
-            obs, reward, terminated, truncated, info = self.step()
-            time.sleep(sleep_time)
-            if terminated or truncated:
-                print("[ENV] Episode finished. Resetting...")
-                self.env.reset()
+    def follow_path(self, vehicle_id, path):
+        v = self.get_vehicle(vehicle_id)
+        if v:
+            self.vehicle_manager.follow_path(v, path)
+
+    def step(self, action=None):
+        """Step environment (apply action to ego vehicle)."""
+        if action is None:
+            action = [0.0, 0.0]  # [steering, throttle]
+        obs, reward, done, info = self.env.step(action)
+        return obs, reward, done, info
 
     def close(self):
-        """Close the environment."""
+        """Close environment cleanly."""
         if self.env:
             self.env.close()
-            print("[ENV] MetaDrive environment closed.")
+            print("[ENV] Closed MetaDrive environment")

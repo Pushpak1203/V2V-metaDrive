@@ -1,17 +1,23 @@
 # config/sim_params.yaml
 
-# MetaDrive simulation parameters
-simulation_time: 60        # Total simulation time in seconds
-tick_rate: 0.05            # Time step in seconds
+default_map: "CloverLeaf"
+simulation_time: 60       # Total simulation time in seconds
+tick_rate: 0.05           # Time step for the simulation
 
-# Vehicles
-vehicle_ids: ["ego_vehicle", "vehicle_1", "vehicle_2"]  # Default vehicle IDs
+vehicle_ids:
+  - "ego_vehicle"
+  - "vehicle_1"
+  - "vehicle_2"
+
 vehicle_count: 3
-autopilot: true
 
-# Ports
 broadcast_port: 5000
 receiver_base_port: 5001
 
-# Environment
-map: "C"                   # MetaDrive map type
+lidar:
+  range: 50.0
+  resolution: 0.5
+
+camera:
+  resolution: [640, 480]
+  fov: 90
