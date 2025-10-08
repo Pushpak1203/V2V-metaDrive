@@ -20,6 +20,29 @@ It demonstrates **encrypted broadcasting and receiving of vehicle states** while
 ```
 META-DRIVE+V2V/
 │
+├── metadrive/                      
+│   ├── __init__.py
+│   ├── assets/
+│   ├── base_class/
+│   ├── component/
+│   ├── engine/
+│   ├── envs/
+│   ├── examples/
+│   │   ├── run_lowcost_policy.py
+│   │   ├── drive_in_multi_agent_env.py
+│   │   └── ...
+│   ├── manager/
+│   ├── obs/
+│   ├── policy/
+│   ├── render_pipeline/
+│   ├── scenario/
+│   ├── shaders/
+│   ├── tests/
+│   ├── third_party/
+│   ├── utils/
+│   ├── version.py
+│   └── setup.py
+│
 ├── communication/
 │   ├── broadcaster.py
 │   ├── receiver.py
@@ -44,10 +67,12 @@ META-DRIVE+V2V/
 │   ├── env_manager.py
 │   └── vehicle_manager.py
 │
-├── logs/                  # runtime logs
+├── logs/
+│
 ├── requirements.txt
-├── run_all.py             # master launcher
+├── run_all.py
 └── README.md
+
 ```
 
 ---
